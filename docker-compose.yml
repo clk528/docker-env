@@ -1,0 +1,75 @@
+version: '3'
+
+secrets:
+  mariadb_db_password:
+    file: ./mariadb/MARIADB_PASSWORD
+
+services:
+    redis:
+        container_name: redis
+        image: redis:latest
+        restart: always
+        ports: 
+            - 6379:6379
+        volumes: 
+            - ./redis:/data
+    mysql:
+        build: ./mysql
+        container_name: mysql
+        restart: always
+        depends_on:
+            - redis
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+        ports:
+            - 3306:3306
+        volumes:
+            - ./mysql/data:/var/lib/mysql
+        command: 
+            --default-authentication-plugin=mysql_native_password
+            --character-set-server=utf8mb4
+            --collation-server=utf8mb4_general_ci
+            --explicit_defaults_for_timestamp=true
+            --lower_case_table_names=1
+            --max_allowed_packet=128M
+
+    mongo:
+        image: mongo:latest
+        container_name: mongo
+        restart: always
+        ports:
+            - 27017:27017
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: example
+            TZ: Asia/Shanghai
+
+    mongo-express:
+        image: mongo-express:latest
+        container_name: mongo-express
+        restart: always
+        depends_on:
+            - mongo
+        ports:
+            - 1868:8081
+        environment:
+            ME_CONFIG_MONGODB_ADMINUSERNAME: root
+            ME_CONFIG_MONGODB_ADMINPASSWORD: example
+            ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+            ME_CONFIG_BASICAUTH_USERNAME: admin
+            ME_CONFIG_BASICAUTH_PASSWORD: admin
+
+    mariadb:
+        container_name: mariadb
+        image: mariadb
+        restart: always
+        secrets: 
+            - mariadb_db_password
+        environment:
+            MARIADB_ROOT_PASSWORD_FILE: /run/secrets/mariadb_db_password
+            TZ: 'Asia/Shanghai'
+        ports:
+            - 3309:3306
+        volumes:
+            - ./mariadb/data:/var/lib/mysql:Z
+            - ./mariadb/conf:/etc/mysql/conf.d
