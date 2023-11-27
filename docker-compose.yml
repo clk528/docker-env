@@ -74,3 +74,15 @@ services:
         volumes:
             - ./mariadb/data:/var/lib/mysql:Z
             - ./mariadb/conf:/etc/mysql/conf.d
+
+
+    phpmyadmin:
+        container_name: phpmyadmin
+        image: phpmyadmin:latest
+        restart: always
+        ports:
+            - 1970:80
+        environment:
+            - PMA_ARBITRARY=1
+            - PMA_HOST=mysql
+            - PMA_PORT=3306
