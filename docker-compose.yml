@@ -7,12 +7,12 @@ secrets:
 services:
     redis:
         container_name: redis
-        image: redis:latest
+        build: ./redis
         restart: always
         ports: 
             - 6379:6379
         volumes: 
-            - ./redis:/data
+            - ./redis/db:/data
     mysql:
         build: ./mysql
         container_name: mysql
